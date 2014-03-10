@@ -11,3 +11,5 @@ set noswapfile
 
 set visualbell
 
+cnoremap sudow w !sudo tee % >/dev/null
+
