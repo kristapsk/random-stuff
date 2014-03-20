@@ -28,7 +28,7 @@ is_power_of_two() {
 optimal_io_size="`cat /sys/block/$dev/queue/optimal_io_size`"
 minimum_io_size="`cat /sys/block/$dev/queue/minimum_io_size`"
 alignment_offset="`cat /sys/block/$dev/alignment_offset`"
-physical_block_size="`cat /sys/block/$dev/queue/physical_block_size`"
+logical_block_size="`cat /sys/block/$dev/queue/logical_block_size`"
 
 # From http://h10025.www1.hp.com/ewfrf/wc/document?cc=uk&lc=en&dlc=en&docname=c03479326
 # 1. Always use the reported alignment offset as offset.
@@ -36,12 +36,12 @@ physical_block_size="`cat /sys/block/$dev/queue/physical_block_size`"
 # 2. b. If optimal io size is not present in topology info and alignment offset is 0 and minimum io size is a power of 2, use the default optimal alignment (grain 1MiB).
 # 2. c. If not 2a and 2b, use the minimum io size, or if that is not defined the physical sector size as grain (iow the minimum alignment).
 if [[ "$optimal_io_size" != "0" ]]; then
-        echo $(( ( $alignment_offset + $optimal_io_size ) / $physical_block_size ))s
+        echo $(( ( $alignment_offset + $optimal_io_size ) / $logical_block_size ))s
 else
         if [[ "$alignment_offset" == "0" && "$(is_power_of_two $minimum_io_size)" == "1" ]]; then
-                echo $(( 1048576 / $physical_block_size ))s
+                echo $(( 1048576 / $logical_block_size ))s
         else
-                echo $(( ( $alignment_offset + $minimum_io_size ) / $physical_block_size ))s
+                echo $(( ( $alignment_offset + $minimum_io_size ) / $logical_block_size ))s
         fi
 fi
 
