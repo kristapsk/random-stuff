@@ -16,7 +16,7 @@ if [ -d /usr/local/portage ]; then
 fi
 
 mkdir -p /usr/local/portage/{metadata,profiles}
-echo "`hostname`" > /usr/local/portage/profiles/repo_name
+hostname > /usr/local/portage/profiles/repo_name
 echo "masters = gentoo" > /usr/local/portage/metadata/layout.conf
 chown -R portage:portage /usr/local/portage
 
