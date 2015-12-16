@@ -1,0 +1,29 @@
+#!/sbin/runscript
+# Copyright 1999-2015 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+PIDFILE=/var/run/sshuttle.pid
+
+depend() {
+	need net
+	after iptables
+}
+
+start() {
+	ebegin "Starting sshuttle"
+	sshuttle --daemon ${SSHUTTLE_ARGS}
+	sleep 1
+	ps afx | grep -- "$SSHUTTLE_ARGS" | grep -v grep | cut -d ' ' -f 1 > $PIDFILE
+	if [ "`cat $PIDFILE`" != "" ]; then
+		eend 0
+	else
+		eend 1
+	fi
+}
+
+stop() {
+	ebegin "Stopping sshuttle"
+	kill `cat $PIDFILE`
+	eend $?
+}
