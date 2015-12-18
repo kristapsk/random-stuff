@@ -10,12 +10,22 @@ depend() {
 	after iptables
 }
 
+checkconfig() {
+	if [ "$SSHUTTLE_ARGS" == "" ]; then
+		eerror "SSHUTTLE_ARGS must not be empty, check /etc/conf.d/sshuttle !"
+		return 1
+	fi
+	return 0
+}
+
 start() {
+	checkconfig || return $?
+
 	ebegin "Starting sshuttle"
 	sshuttle --daemon ${SSHUTTLE_ARGS}
 	sleep 1
 	ps afx | grep -- "$SSHUTTLE_ARGS" | grep -v grep | cut -d ' ' -f 1 > $PIDFILE
-	if [ "`cat $PIDFILE`" != "" ]; then
+	if [ "`cat $PIDFILE | wc -l`" == "1" ]; then
 		eend 0
 	else
 		eend 1
