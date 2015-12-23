@@ -24,7 +24,7 @@ start() {
 	ebegin "Starting sshuttle"
 	sshuttle --daemon ${SSHUTTLE_ARGS}
 	sleep 1
-	ps afx | grep -- "$SSHUTTLE_ARGS" | grep -v grep | cut -d ' ' -f 1 > $PIDFILE
+	ps -ax | grep -- "$SSHUTTLE_ARGS" | grep -v grep | cut -d ' ' -f 1 > $PIDFILE
 	if [ "`cat $PIDFILE | wc -l`" == "1" ]; then
 		eend 0
 	else
@@ -35,5 +35,23 @@ start() {
 stop() {
 	ebegin "Stopping sshuttle"
 	kill `cat $PIDFILE`
-	eend $?
+	sleep 1
+	if ! ps -ax | grep -qs -- "$SSHUTTLE_ARGS" | grep -v grep; then
+		rm $PIDFILE
+		eend 0
+		return
+	fi
+	sleep 3
+	if ! ps -ax | grep -qs -- "$SSHUTTLE_ARGS" | grep -v grep; then
+		rm $PIDFILE
+		eend 0
+		return
+	fi
+	sleep 5
+	if ! ps -ax | grep -qs -- "$SSHUTTLE_ARGS" | grep -v grep; then
+		eend 0
+	else
+		eend 1
+	fi
+	rm $PIDFILE
 }
