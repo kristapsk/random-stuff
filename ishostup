@@ -1,19 +1,24 @@
 #! /bin/bash
 # Check is host up using ping, arping and/or nc.
 
+if [ "`uname -s`" != "Linux" ]; then
+    echo Linux is required.
+    exit 3
+fi
+
 if [ "$1" == "" ]; then
-        echo "Check is host up using ICMP ping, ARP ping and/or TCP ping."
-        echo "Usage: `basename $0` host [tcp_ports]"
-        echo "Multiple TCP ports can be specified, comma separated."
-        echo "By default will check TCP ports 22 (sshd) and 80 (http)."
-        exit 0
+    echo "Check is host up using ICMP ping, ARP ping and/or TCP ping."
+    echo "Usage: `basename $0` host [tcp_ports]"
+    echo "Multiple TCP ports can be specified, comma separated."
+    echo "By default will check TCP ports 22 (sshd) and 80 (http)."
+    exit 0
 fi
 
 host="$1"
 tcp_ports="22,80"
 
 if [ "$2" != "" ]; then
-        tcp_ports="$2"
+    tcp_ports="$2"
 fi
 
 is_installed() {
@@ -28,38 +33,38 @@ fi
 # https://unix.stackexchange.com/questions/20784/how-can-i-resolve-a-hostname-to-an-ip-address-in-a-bash-script
 pingout="`ping -q -c 1 -t 1 $host 2>&1`"
 if echo "$pingout" | grep -qs "unknown host" ; then
-        echo "Unknown host $host"
-        exit 1
+    echo "Unknown host $host"
+    exit 1
 fi
 host="`echo $pingout | grep PING | sed -e "s/).*//" | sed -e "s/.*(//"`"
 
 # https://stackoverflow.com/questions/21679893/linux-check-if-in-same-network
 is_remote_ip() {
-        ip route get $1 | grep -q "via $(ip route | awk '/default/ {print $3}') "
+    ip route get $1 | grep -q "via $(ip route | awk '/default/ {print $3}') "
 }
 
 if ! is_remote_ip $host ; then
 	if ! is_installed arping; then
 		echo "WARNING: 'arping' command unavailable, skipping ARP ping."
 	else
-        	net_iface="`route -n | grep "^0.0.0.0" | sed 's/\s\+/\t/g' | cut -f 8`"
-        	if arping -fq -c 3 -I $net_iface $host > /dev/null ; then
-                	echo "Host $host is UP (ARP ping)"
-                	exit 0
-        	fi
+       	net_iface="`route -n | grep "^0.0.0.0" | sed 's/\s\+/\t/g' | cut -f 8`"
+       	if arping -fq -c 3 -I $net_iface $host > /dev/null ; then
+           	echo "Host $host is UP (ARP ping)"
+          	exit 0
+       	fi
 	fi
 fi
 
 if ping -c 3 $host > /dev/null ; then
-        echo "Host $host is UP (ICMP ping)"
-        exit 0
+    echo "Host $host is UP (ICMP ping)"
+    exit 0
 fi
 
 for port in `echo "$tcp_ports" | tr , " "`; do
-        if nc -z -n $host $port; then
-                echo "Host $host is UP (TCP ping on port $port)"
-                exit 0
-        fi
+    if nc -z -n $host $port; then
+        echo "Host $host is UP (TCP ping on port $port)"
+        exit 0
+    fi
 done
 
 echo "Host $host is DOWN"
