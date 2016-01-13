@@ -1,9 +1,10 @@
 silent! execute pathogen#infect()
 
+set nocp
 set expandtab
 set shiftwidth=4
 set tabstop=4
-colorscheme darkblue
+silent! colorscheme darkblue
 
 if has("gui_running")
     set number
