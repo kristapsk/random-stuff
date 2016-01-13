@@ -4,6 +4,8 @@ set nocp
 set expandtab
 set shiftwidth=4
 set tabstop=4
+set autoindent
+
 silent! colorscheme darkblue
 
 if has("gui_running")
