@@ -61,7 +61,7 @@ if ping -c 3 $host > /dev/null ; then
 fi
 
 for port in `echo "$tcp_ports" | tr , " "`; do
-    if nc -z -n $host $port; then
+    if nc -z -w 3 -n $host $port; then
         echo "Host $host is UP (TCP ping on port $port)"
         exit 0
     fi
