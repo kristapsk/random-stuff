@@ -18,3 +18,6 @@ set visualbell
 
 cnoremap sudow w !sudo tee % >/dev/null
 
+set wildmenu
+set wildmode=list:longest
+
