@@ -3,7 +3,7 @@
 
 if [ "`uname -s`" != "Linux" ]; then
     echo Linux is required.
-    exit 3
+    exit 2
 fi
 
 if [ "$1" == "" ]; then
@@ -27,12 +27,12 @@ is_installed() {
 
 if ! is_installed ip ; then
     echo "FATAL: 'ip' command from iproute2 is required."
-    exit 3
+    exit 2
 fi
 
 # https://unix.stackexchange.com/questions/20784/how-can-i-resolve-a-hostname-to-an-ip-address-in-a-bash-script
 pingout="`ping -q -c 1 -t 1 $host 2>&1`"
-if echo "$pingout" | grep -qs "unknown host" ; then
+if echo "$pingout" | grep -qs "\(unknown host\|Name or service not known\)" ; then
     echo "Unknown host $host"
     exit 1
 fi
@@ -44,20 +44,26 @@ is_remote_ip() {
 }
 
 if ! is_remote_ip $host ; then
-	if ! is_installed arping; then
-		echo "WARNING: 'arping' command unavailable, skipping ARP ping."
-	else
+    if ! is_installed arping; then
+        echo "WARNING: 'arping' command unavailable, skipping ARP ping."
+    else
        	net_iface="`route -n | grep "^0.0.0.0" | sed 's/\s\+/\t/g' | cut -f 8`"
        	if arping -fq -c 3 -I $net_iface $host > /dev/null ; then
            	echo "Host $host is UP (ARP ping)"
           	exit 0
        	fi
-	fi
+    fi
 fi
 
 if ping -c 3 $host > /dev/null ; then
     echo "Host $host is UP (ICMP ping)"
     exit 0
+fi
+
+if ! is_installed nc ; then
+    echo "Cannot perform TCP ping, 'nc' not installed."
+    echo "Host $host is probably DOWN"
+    exit 2
 fi
 
 for port in `echo "$tcp_ports" | tr , " "`; do
